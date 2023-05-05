@@ -9,8 +9,9 @@ interface IUser {
 
 const UserSchema = new Schema<IUser>({
   name: {
-    type: String,
-    minlength: 2,
+    type: String ,
+
+    minlength: 3,
     maxlength: 30,
     required: [true, 'User name required'],
     validate: {
