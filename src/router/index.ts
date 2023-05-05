@@ -1,18 +1,13 @@
-const Router = require('express').Router;
-const userController = require('../controllers/user-controller');
-const router = new Router();
-const {body} = require('express-validator');
-const authMiddleware = require('../middlewares/auth-middleware');
+import { NextFunction, Router } from 'express';
+import userRouter from './user';
+import cardsRouter from './cards';
+import ApiError from '../exceptions/api-error';
 
-router.post('/registration',
-    body('email').isEmail(),
-    body('password').isLength({min: 3, max: 32}),
-    userController.registration
-);
-router.post('/login', userController.login);
-router.post('/logout', userController.logout);
-router.get('/activate/:link', userController.activate);
-router.get('/refresh', userController.refresh);
-router.get('/users', authMiddleware, userController.getUsers);
+const router = Router();
 
-export default router
+router.use('/users', userRouter);
+router.use('/cards', cardsRouter);
+
+router.use((_req: any, _res: any, next: NextFunction) => next(ApiError.BadRequest('Запрашиваемый ресурс не найден')));
+
+export default router;
