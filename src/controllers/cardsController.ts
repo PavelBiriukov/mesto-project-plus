@@ -1,55 +1,56 @@
-import ApiError from '../exceptions/api-error';
+import { Request, Response, NextFunction } from 'express';
+import ApiError from '../error/ApiError';
 import Card from '../models/card';
 import { IAppRequest } from '../types/AppRequest';
 
 class CardController {
-  async createCard(req: any, res: any, next: any) {
+  async createCard(req: IAppRequest, res: Response, next: NextFunction) {
     const { name, link } = req.body;
     const owner = req.user!._id;
 
     try {
       if (!name || !link) {
-        return next(ApiError.BadRequest('Переданы некорректные данные при создании карточки'));
+        return next(ApiError.badRequest('Переданы некорректные данные при создании карточки'));
       }
       const user = await Card.create({ name, link, owner });
       return res.json({ data: user });
     } catch {
-      next(ApiError.BadRequest('На сервере произошла ошибка'));
+      next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 
-  async getAllCards(req: any, res: any, next: any) {
+  async getAllCards(req: Request, res: Response, next: NextFunction) {
     try {
       const cards = await Card.find({});
       return res.json({ data: cards });
     } catch {
-      next(ApiError.BadRequest('На сервере произошла ошибка'));
+      next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 
-  async removeCard(req: IAppRequest, res: any, next: any) {
+  async removeCard(req: IAppRequest, res: Response, next: NextFunction) {
     const { cardId } = req.params;
 
     try {
       await Card.findByIdAndRemove(cardId)
         .then((card) => {
           if (!card) {
-            return next(ApiError.BadRequest('Карточка с указанным _id не найдена'));
+            return next(ApiError.authorization('Карточка с указанным _id не найдена'));
           }
           return res.json({ data: card });
         });
     } catch {
-      next(ApiError.BadRequest('На сервере произошла ошибка'));
+      next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 
-  async likeCard(req: IAppRequest, res: any, next: any) {
+  async likeCard(req: IAppRequest, res: Response, next: NextFunction) {
     const { cardId } = req.params;
     const id = req.user!._id;
 
     try {
       if (!cardId) {
-        return next(ApiError.BadRequest('Переданы некорректные данные для постановки лайка'));
+        return next(ApiError.badRequest('Переданы некорректные данные для постановки лайка'));
       }
       const card = await Card.findByIdAndUpdate(
         cardId,
@@ -60,25 +61,24 @@ class CardController {
         },
         {
           new: true,
-          runValidators: true,
         },
       );
       if (!card) {
-        return next(ApiError.BadRequest('Передан несуществующий _id карточки'));
+        return next(ApiError.authorization('Передан несуществующий _id карточки'));
       }
       return res.json({ data: card });
     } catch {
-      next(ApiError.BadRequest('На сервере произошла ошибка'));
+      next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 
-  async dislikeCard(req: IAppRequest, res: any, next: any) {
+  async dislikeCard(req: IAppRequest, res: Response, next: NextFunction) {
     const { cardId } = req.params;
     const id = req.user!._id;
 
     try {
       if (!cardId) {
-        return next(ApiError.BadRequest('Переданы некорректные данные для постановки лайка'));
+        return next(ApiError.badRequest('Переданы некорректные данные для постановки лайка'));
       }
       const card = await Card.findByIdAndUpdate(
         cardId,
@@ -89,15 +89,14 @@ class CardController {
         },
         {
           new: true,
-          runValidators: true,
         },
       );
       if (!card) {
-        return next(ApiError.BadRequest('Передан несуществующий _id карточки'));
+        return next(ApiError.authorization('Передан несуществующий _id карточки'));
       }
       return res.json({ data: card });
     } catch {
-      next(ApiError.BadRequest('На сервере произошла ошибка'));
+      next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 }

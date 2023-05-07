@@ -30,24 +30,13 @@
       ]
   },
   "rules": {
-      "import/extensions": [
-          "error",
-          "ignorePackages",
-          {
-              "js": "never",
-              "ts": "never"
-          }
-      ],
-      "no-underscore-dangle": [
+    "import/extensions": [
         "error",
+        "ignorePackages",
         {
-          "allow": [
-            "_id"
-          ]
+            "js": "never",
+            "ts": "never"
         }
-      ],
-      "class-methods-use-this": ["off"],
-      "consistent-return": ["off"],
-      "import/prefer-default-export": ["off"]
+    ]
   }
 }
