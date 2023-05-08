@@ -1,103 +1,104 @@
 import { Request, Response, NextFunction } from 'express';
+import User from '../models/user';
 import ApiError from '../error/ApiError';
-import Card from '../models/card';
-import { IAppRequest } from '../types/AppRequest';
-
-class CardController {
-  async createCard(req: IAppRequest, res: Response, next: NextFunction) {
-    const { name, link } = req.body;
-    const owner = req.user!._id;
+/* НЕ нашел в чек листе: что Контроллеры должны быть описаны не в виде класса, а в виде отдельных функций. */
+/* извините но я не понял : Согласно требованиям к этой работе вам необходимо вынести все коды ответов в константы.
+Рекомендую использовать константы из пакета http2, который встроен в NodeJS. */
+/* У ребят из моей и чужих когорт похожий код но им про эту ошибку не говорили:
+Во время работы приложения в контроллерах могут возникать различные ошибки БД,
+ которые нужно обрабатывать. Чтобы вам было проще разобраться, я добавлю справку
+ по ошибкам БД в конец общего комментария. Обратите внимание, что в каждом контроллере
+ не нужно обрабатывать все возможные ошибки — обрабатывайте только те,
+что могут возникать в конкретном контроллере. */
+class UserController {
+  async createUser(req: Request, res: Response, next: NextFunction) {
+    const { name, about, avatar } = req.body;
 
     try {
-      if (!name || !link) {
-        return next(ApiError.badRequest('Переданы некорректные данные при создании карточки'));
+      if (!name || !about || !avatar) {
+        return next(ApiError.badRequest('Переданы некорректные данные при создании пользователя'));
       }
-      const user = await Card.create({ name, link, owner });
+      const user = await User.create({ name, about, avatar });
       return res.json({ data: user });
     } catch {
       next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 
-  async getAllCards(req: Request, res: Response, next: NextFunction) {
+  async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
-      const cards = await Card.find({});
-      return res.json({ data: cards });
+      const users = await User.find({});
+      return res.json({ data: users });
     } catch {
       next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 
-  async removeCard(req: IAppRequest, res: Response, next: NextFunction) {
-    const { cardId } = req.params;
-
+  async getUserById(req: Request, res: Response, next: NextFunction) {
+    const { id } = req.params;
     try {
-      await Card.findByIdAndRemove(cardId)
-        .then((card) => {
-          if (!card) {
-            return next(ApiError.authorization('Карточка с указанным _id не найдена'));
-          }
-          return res.json({ data: card });
-        });
-    } catch {
-      next(ApiError.internal('На сервере произошла ошибка'));
-    }
-  }
-
-  async likeCard(req: IAppRequest, res: Response, next: NextFunction) {
-    const { cardId } = req.params;
-    const id = req.user!._id;
-
-    try {
-      if (!cardId) {
-        return next(ApiError.badRequest('Переданы некорректные данные для постановки лайка'));
+      const users = await User.findById(id);
+      if (!users) {
+        return next(ApiError.authorization('Пользователь по указанному _id не найден'));
       }
-      const card = await Card.findByIdAndUpdate(
-        cardId,
+      return res.json({ data: users });
+    } catch {
+      next(ApiError.internal('На сервере произошла ошибка'));
+    }
+  }
+
+  async updateInfo(req: any, res: Response, next: NextFunction) {
+    const { name, about } = req.body;
+    const id = req.user!._id;
+    try {
+      if (!name || !about) {
+        return next(ApiError.badRequest('Переданы некорректные данные при обновлении профиля'));
+      }
+
+      const users = await User.findByIdAndUpdate(
+        id,
         {
-          $addToSet: {
-            likes: id,
-          },
+          name,
+          about,
         },
         {
           new: true,
+          runValidators: true,
         },
       );
-      if (!card) {
-        return next(ApiError.authorization('Передан несуществующий _id карточки'));
+      if (!users) {
+        return next(ApiError.authorization('Пользователь по указанному _id не найден'));
       }
-      return res.json({ data: card });
+      return res.json({ data: users });
     } catch {
       next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 
-  async dislikeCard(req: IAppRequest, res: Response, next: NextFunction) {
-    const { cardId } = req.params;
+  async updateAvatar(req: any, res: Response, next: NextFunction) {
+    const { avatar } = req.body;
     const id = req.user!._id;
-
     try {
-      if (!cardId) {
-        return next(ApiError.badRequest('Переданы некорректные данные для постановки лайка'));
+      if (!avatar) {
+        return next(ApiError.badRequest('Переданы некорректные данные при обновлении аватара'));
       }
-      const card = await Card.findByIdAndUpdate(
-        cardId,
+      const users = await User.findByIdAndUpdate(
+        id,
         {
-          $pull: {
-            likes: id,
-          },
+          avatar,
         },
         {
           new: true,
+          runValidators: true,
         },
       );
-      if (!card) {
-        return next(ApiError.authorization('Передан несуществующий _id карточки'));
+      if (!users) {
+        return next(ApiError.authorization('Пользователь по указанному _id не найден'));
       }
-      return res.json({ data: card });
+      return res.json({ data: users });
     } catch {
       next(ApiError.internal('На сервере произошла ошибка'));
     }
   }
 }
-export default new CardController();
+export default new UserController();

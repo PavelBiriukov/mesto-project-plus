@@ -7,7 +7,7 @@ interface IUser {
   avatar: string;
 }
 
-const UserSchema = new Schema<IUser>({
+const userSchema = new Schema<IUser>({
   name: {
     type: String,
     minlength: 2,
@@ -29,4 +29,4 @@ const UserSchema = new Schema<IUser>({
     },
   },
 });
-export default model<IUser>('User', UserSchema);
+export default model<IUser>('user', userSchema);
