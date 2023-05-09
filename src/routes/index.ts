@@ -1,13 +1,17 @@
-import { NextFunction, Router } from 'express';
-import userRouter from './userRouter';
-import cardsRouter from './cardsRouter';
-import ApiError from '../error/ApiError';
+import {
+  Router, Request, Response, NextFunction,
+} from 'express';
+import NotFoundError from '../errors/not-found-err';
+import usersRouter from './uesers';
+import cardsRouter from './cards';
 
 const router = Router();
 
-router.use('/users', userRouter);
 router.use('/cards', cardsRouter);
+router.use('/users', usersRouter);
 
-router.use((_req, _res, next: NextFunction) => next(ApiError.notFound('Запрашиваемый ресурс не найден')));
+router.use((req: Request, res: Response, next: NextFunction) => {
+  next(new NotFoundError('Маршрут не найден'));
+});
 
 export default router;

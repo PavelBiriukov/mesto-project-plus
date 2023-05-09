@@ -1,32 +1,43 @@
-import { model, Schema } from 'mongoose';
-import { regExp } from '../constants/index';
-
-interface IUser {
-  name: string;
-  about: string;
-  avatar: string;
-}
+import { Schema, model } from 'mongoose';
+import { defaultUserAbout, defaultUserAvatar, defaultUserName } from '../services/constants';
+import { IUser } from '../services/interfaces';
+import { emailValidator } from '../services/index';
 
 const userSchema = new Schema<IUser>({
   name: {
     type: String,
+    default: defaultUserName,
     minlength: 2,
     maxlength: 30,
-    required: [true, 'User name required'],
   },
   about: {
     type: String,
+    default: defaultUserAbout,
     minlength: 2,
     maxlength: 200,
-    required: [true, 'User about required'],
   },
   avatar: {
     type: String,
-    required: [true, 'User avatar required'],
+    default: defaultUserAvatar,
     validate: {
-      validator: (v: string) => regExp.test(v),
-      message: 'Некорректная ссылка',
+      validator(v: string) {
+        return /^(http|https):\/\/(?:www\.|(?!www))[^ "]+\.([a-z]{2,})/.test(v);
+      },
+      message: 'URL не соответствует формату',
     },
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    validate: emailValidator,
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false,
+  },
 });
-export default model<IUser>('user', userSchema);
+
+export default model('user', userSchema);
