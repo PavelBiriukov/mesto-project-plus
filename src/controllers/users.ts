@@ -1,31 +1,16 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { IRequestCustom } from '../services/interfaces';
 import User from '../models/user';
-import {
-  MSG_ERROR_USER_NOT_FOUND,
-  MSG_ERROR_USER_PASS_WRONG,
-} from '../services/constants';
-import { handleOperationalErrors } from '../services/index';
-import NotFoundError from '../errors/not-found-err';
-import UnauthorizedError from '../errors/unauthorized-err';
+
 
 /* eslint no-param-reassign: "off" */
 export const login = (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   return User.findOne({ email })
     .select('+password')
-    .then((user) => {
-      if (!user) {
-        next(new UnauthorizedError(MSG_ERROR_USER_PASS_WRONG));
-        return;
-      }
-      bcrypt.compare(password, user.password).then((correct) => {
-        if (!correct) {
-          next(new UnauthorizedError(MSG_ERROR_USER_PASS_WRONG));
-          return;
-        }
+    .then((user: { password: string; _id: any; }) => {
+      bcrypt.compare(password, user.password).then((correct: any) => {
         const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
           expiresIn: '7d',
         });
@@ -42,7 +27,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const getUsers = (_req: Request, res: Response, next: NextFunction) => User.find({})
-  .then((user) => res.send(user))
+  .then((user: any) => res.send(user))
   .catch(next);
 
 export const getUserById = (
@@ -51,14 +36,14 @@ export const getUserById = (
   next: NextFunction,
 ) => {
   User.findById(req.params.userId)
-    .then((user) => {
+    .then((user: any) => {
       if (!user) {
-        throw new NotFoundError(MSG_ERROR_USER_NOT_FOUND);
+        next(user)
       }
       return res.send(user);
     })
-    .catch((err) => {
-      handleOperationalErrors(err, next);
+    .catch((err: any) => {
+      next(user)
     });
 };
 
@@ -69,14 +54,14 @@ export const getCurrentUser = (
 ) => {
   const _id = req.user?._id;
   return User.findById(_id)
-    .then((user) => {
+    .then((user: any) => {
       if (!user) {
-        throw new NotFoundError(MSG_ERROR_USER_NOT_FOUND);
+        next(user)
       }
       return res.send(user);
     })
-    .catch((err) => {
-      handleOperationalErrors(err, next);
+    .catch((err: any) => {
+      next(err)
     });
 };
 
@@ -86,7 +71,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
   } = req.body;
   bcrypt
     .hash(req.body.password, 10)
-    .then((hash) => User.create({
+    .then((hash: any) => User.create({
       name,
       about,
       avatar,
@@ -101,8 +86,8 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
         email,
       });
     })
-    .catch((err) => {
-      handleOperationalErrors(err, next);
+    .catch((err: any) => {
+      next(err)
     });
 };
 
@@ -118,14 +103,14 @@ export const updateUser = (
     { name, about },
     { new: true, runValidators: true },
   )
-    .then((user) => {
+    .then((user: any) => {
       if (!user) {
-        throw new NotFoundError(MSG_ERROR_USER_NOT_FOUND);
+        next(user)
       }
       return res.send(user);
     })
-    .catch((err) => {
-      handleOperationalErrors(err, next);
+    .catch((err: any) => {
+      next(err)
     });
 };
 
@@ -141,13 +126,13 @@ export const updateAvatar = (
     { avatar },
     { new: true, runValidators: true },
   )
-    .then((user) => {
+    .then((user: any) => {
       if (!user) {
-        throw new NotFoundError(MSG_ERROR_USER_NOT_FOUND);
+        next('err')
       }
       return res.send(user);
     })
-    .catch((err) => {
-      handleOperationalErrors(err, next);
+    .catch((err: any) => {
+      next(err)
     });
 };
