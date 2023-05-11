@@ -15,7 +15,6 @@ export const createCard = (req: IRequestCustom, res: Response, next: NextFunctio
     .then((card: any) => res.status(201).send(card))
     .catch((err: any) => {
       next(err)
-
     });
 };
 
