@@ -38,12 +38,12 @@ export const getUserById = (
   User.findById(req.params.userId)
     .then((user: any) => {
       if (!user) {
-        next(user)
+        next()
       }
       return res.send(user);
     })
     .catch((err: any) => {
-      next(user)
+      next(err)
     });
 };
 
