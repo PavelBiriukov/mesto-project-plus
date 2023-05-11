@@ -1,24 +1,21 @@
 import { Schema, model } from 'mongoose';
-import { defaultUserAbout, defaultUserAvatar, defaultUserName } from '../services/constants';
-import { IUser } from '../services/interfaces';
-import { emailValidator } from '../services/index';
 
-const userSchema = new Schema<IUser>({
+const userSchema = new Schema({
   name: {
     type: String,
-    default: defaultUserName,
+    default: '',
     minlength: 2,
     maxlength: 30,
   },
   about: {
     type: String,
-    default: defaultUserAbout,
+    default: '',
     minlength: 2,
     maxlength: 200,
   },
   avatar: {
     type: String,
-    default: defaultUserAvatar,
+    default: '',
     validate: {
       validator(v: string) {
         return /^(http|https):\/\/(?:www\.|(?!www))[^ "]+\.([a-z]{2,})/.test(v);
@@ -31,7 +28,7 @@ const userSchema = new Schema<IUser>({
     required: true,
     unique: true,
     lowercase: true,
-    validate: emailValidator,
+    validate: '',
   },
   password: {
     type: String,
