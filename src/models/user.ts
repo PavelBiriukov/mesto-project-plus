@@ -1,43 +1,76 @@
-import { Schema, model } from 'mongoose';
-import { defaultUserAbout, defaultUserAvatar, defaultUserName } from '../services/constants';
-import { IUser } from '../services/interfaces';
-import { emailValidator } from '../services/index';
+import {
+  model, Schema, Model, Document,
+} from 'mongoose';
+import validator from 'validator';
+import bcrypt from 'bcrypt';
+import { regExp } from '../constants/index';
+import ApiError from '../error/ApiError';
 
-const userSchema = new Schema<IUser>({
+interface IUser {
+  name: string;
+  about: string;
+  avatar: string;
+  email: string;
+  password: string;
+}
+
+interface UserModel extends Model<IUser> {
+  // eslint-disable-next-line no-unused-vars
+  findUserByCredentials: (email: string, password: string) => Promise<Document<any, any, IUser>>
+}
+
+const UserSchema = new Schema<IUser>({
   name: {
     type: String,
-    default: defaultUserName,
     minlength: 2,
     maxlength: 30,
+    validate: {
+      validator: (v: string) => v.length > 2 && v.length < 30,
+      message: 'Текст должен быть не короче 2 симв. и не длиннее 30',
+    },
   },
   about: {
     type: String,
-    default: defaultUserAbout,
     minlength: 2,
     maxlength: 200,
+    validate: {
+      validator: (v: string) => v.length > 2 && v.length < 200,
+      message: 'Текст должен быть не короче 2 симв. и не длиннее 200',
+    },
   },
   avatar: {
     type: String,
-    default: defaultUserAvatar,
     validate: {
-      validator(v: string) {
-        return /^(http|https):\/\/(?:www\.|(?!www))[^ "]+\.([a-z]{2,})/.test(v);
-      },
-      message: 'URL не соответствует формату',
+      validator: (v: string) => regExp.test(v),
+      message: 'Некорректная ссылка',
     },
   },
   email: {
     type: String,
-    required: true,
     unique: true,
-    lowercase: true,
-    validate: emailValidator,
+    required: [true, 'User email equired'],
+    validate: {
+      validator: (v: string) => validator.isEmail(v),
+      message: 'Неправильный формат почты',
+    },
   },
   password: {
     type: String,
-    required: true,
+    required: [true, 'User password required'],
     select: false,
   },
 });
 
-export default model('user', userSchema);
+UserSchema.static('findUserByCredentials', async function findUserByCredentials(email, password) {
+  const user = await this.findOne({ email }).select('+password');
+  if (!user) {
+    return ApiError.authorization('Неправильные почта или пароль');
+  }
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return ApiError.authorization('Неправильные почта или пароль');
+  }
+  return user;
+});
+
+export default model<IUser, UserModel>('User', UserSchema);
