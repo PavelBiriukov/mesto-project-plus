@@ -1,29 +1,47 @@
+/* НА этот раз мое :)*/
+import express from 'express';
 import mongoose from 'mongoose';
 import { errors } from 'celebrate';
-import express from 'express';
-import appRouter from './routes/index';
-import authRouter from './routes/auth';
-import auth from './middlewares/auth';
-import { requestLogger, errorLogger } from './middlewares/logger';
-import errorMiddleware from './middlewares/errors';
+import router from './routes/index';
+import errorHandler from './middleware/ErrorHandlingMiddleware';
+import userController from './controllers/userController';
+import authMiddleware from './middleware/authMiddleware';
+import { createUserValidation, loginValidation } from './validation/userValidation';
+import { requestLogger } from './middleware/logger';
+import { errorLogger } from './middleware/errorLogger';
+
+require('dotenv').config();
+
+const PORT = process.env.PORT || 5003;
+const DBURL = process.env.DB_URL || 'mongodb://localhost:27017/mestodb';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const { PORT = 3000, SERVER = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
-
-mongoose.connect(SERVER);
 
 app.use(requestLogger);
 
-app.use('/', authRouter);
+app.post('/signin', loginValidation, userController.login);
+app.post('/signup', createUserValidation, userController.createUser);
+app.use(authMiddleware);
 
-app.use('/', auth, appRouter);
+app.use('/', router);
 
 app.use(errorLogger);
-
 app.use(errors());
+app.use(errorHandler);
 
-app.use(errorMiddleware);
+const start = async () => {
+  try {
+    await mongoose.connect(`${DBURL}`);
 
-app.listen(PORT);
+    app.listen(
+      PORT,
+      () => console.log(`Server start ${PORT}`),
+    );
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+start();

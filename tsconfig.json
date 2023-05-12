@@ -15,12 +15,14 @@
     /* Type Checking */
     "strict": true,                                      /* Enable all strict type-checking options. */
     /* Completeness */
-    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+    "skipLibCheck": true,
+    "noImplicitAny": false                              /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/index.d.tsd.ts", "index.d.ts",
   ],
   "exclude": [
     "node_modules"
   ],
-} 
+}
