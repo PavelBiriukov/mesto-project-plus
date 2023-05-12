@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* НА этот раз мое :)*/
 import express from 'express';
 import mongoose from 'mongoose';
 import { errors } from 'celebrate';
