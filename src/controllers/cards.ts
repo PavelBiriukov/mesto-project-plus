@@ -1,10 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
+import { IRequestCustom } from '../services/interfaces';
 import Card from '../models/cards';
-
+import {
+  MSG_CARD_NOT_FOUND,
+  MSG_CARD_DELETED,
+  MSG_ERROR_FORBIDDEN,
+} from '../services/constants';
+import { handleOperationalErrors } from '../services/index';
+import NotFoundError from '../errors/not-found-err';
+import ForbiddenError from '../errors/forbidden-err';
 
 export const getCards = (_req: Request, res: Response, next: NextFunction) => Card.find({})
   .populate(['owner', 'likes'])
-  .then((card: any) => res.send(card))
+  .then((card) => res.send(card))
   .catch(next);
 
 export const createCard = (req: IRequestCustom, res: Response, next: NextFunction) => {
@@ -12,9 +20,9 @@ export const createCard = (req: IRequestCustom, res: Response, next: NextFunctio
   const _id = req.user?._id;
 
   Card.create({ name, link, owner: _id })
-    .then((card: any) => res.status(201).send(card))
-    .catch((err: any) => {
-      next(err)
+    .then((card) => res.status(201).send(card))
+    .catch((err) => {
+      handleOperationalErrors(err, next);
     });
 };
 
@@ -22,21 +30,21 @@ export const deleteCard = (req: IRequestCustom, res: Response, next: NextFunctio
   const _id = req.params.cardId;
   const userId = req.user?._id;
   return Card.findById(_id)
-    .then((card: { owner: { toString: () => any; }; deleteOne: () => Promise<any>; }) => {
+    .then((card) => {
       if (!card) {
-        next()
+        throw new NotFoundError(MSG_CARD_NOT_FOUND);
       }
       if (card.owner.toString() === userId) {
         return card.deleteOne()
-          .then(() => res.send({ message: 'Карточка удалена' }))
-          .catch((err: any) => {
-            next(err)
+          .then(() => res.send({ message: MSG_CARD_DELETED }))
+          .catch((err) => {
+            handleOperationalErrors(err, next);
           });
       }
-      next()
+      throw new ForbiddenError(MSG_ERROR_FORBIDDEN);
     })
-    .catch((err: any) => {
-      next(err)
+    .catch((err) => {
+      handleOperationalErrors(err, next);
     });
 };
 
@@ -47,16 +55,14 @@ export const addLikeCard = (req: IRequestCustom, res: Response, next: NextFuncti
     { $addToSet: { likes: _id } },
     { new: true, runValidators: true },
   )
-    .then((card: any) => {
+    .then((card) => {
       if (!card) {
-        next()
-
+        throw new NotFoundError(MSG_CARD_NOT_FOUND);
       }
       return res.send(card);
     })
-    .catch((err: any) => {
-      next(err)
-
+    .catch((err) => {
+      handleOperationalErrors(err, next);
     });
 };
 
@@ -68,14 +74,13 @@ export const deleteLikeCard = (req: IRequestCustom, res: Response, next: NextFun
     { $pull: { likes: _id } },
     { new: true, runValidators: true },
   )
-    .then((updatedCard: any) => {
+    .then((updatedCard) => {
       if (!updatedCard) {
-        next()
-
+        throw new NotFoundError(MSG_CARD_NOT_FOUND);
       }
       return res.send(updatedCard);
     })
-    .catch((err: any) => {
-      next(err)
+    .catch((err) => {
+      handleOperationalErrors(err, next);
     });
 };
