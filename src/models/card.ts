@@ -9,7 +9,7 @@ interface ICard {
   createdAt: Date;
 }
 
-const CardSchema = new Schema<ICard>({
+const cardSchema = new Schema<ICard>({
   name: {
     type: String,
     minlength: 2,
@@ -43,4 +43,4 @@ const CardSchema = new Schema<ICard>({
     default: Date.now,
   },
 });
-export default model<ICard>('Card', CardSchema);
+export default model<ICard>('card', cardSchema);
