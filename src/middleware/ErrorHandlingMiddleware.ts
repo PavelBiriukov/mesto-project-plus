@@ -4,8 +4,16 @@ import {
   Response,
 } from 'express';
 import ApiError from '../error/ApiError';
-
-export default function errorHandler(err: Errback, _req: Request, res: Response) {
+export interface IError {
+  statusCode?: number;
+  message: string;
+  code?: number;
+  name?: string;
+}
+export default function errorHandler(err: IError, _req: Request, res: Response) {
+  if (err.code === 11000) {
+    ApiError.ConflictError('Пользователь уже существует');
+  }
   if (err instanceof ApiError) {
     return res.status(err.status).json({ message: err.message });
   }
