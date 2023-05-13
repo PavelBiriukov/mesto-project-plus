@@ -1,10 +1,10 @@
 import { Joi, celebrate } from 'celebrate';
-import { regExp } from '../constants';
+import { REGEX_URL } from '../constants';
 
 export const createCardValidation = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
-    link: Joi.string().required().pattern(regExp),
+    link: Joi.string().required().pattern(REGEX_URL),
   }),
 });
 

@@ -1,12 +1,9 @@
 class ApiError extends Error {
   status: number;
 
-  message: string;
-
   constructor(status: number, message: string) {
-    super();
+    super(message);
     this.status = status;
-    this.message = message;
   }
 
   static badRequest(message: string) {
@@ -23,10 +20,6 @@ class ApiError extends Error {
 
   static conflict(message: string) {
     return new ApiError(409, message);
-  }
-
-  static internal(message: string) {
-    return new ApiError(500, message);
   }
 }
 

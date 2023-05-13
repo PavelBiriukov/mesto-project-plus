@@ -3,7 +3,7 @@ import {
 } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
-import { regExp } from '../constants/index';
+import { REGEX_URL } from '../constants/index';
 import ApiError from '../error/ApiError';
 
 interface IUser {
@@ -19,29 +19,24 @@ interface UserModel extends Model<IUser> {
   findUserByCredentials: (email: string, password: string) => Promise<Document<any, any, IUser>>
 }
 
-const UserSchema = new Schema<IUser>({
+const userSchema = new Schema<IUser>({
   name: {
     type: String,
     minlength: 2,
     maxlength: 30,
-    validate: {
-      validator: (v: string) => v.length > 2 && v.length < 30,
-      message: 'Текст должен быть не короче 2 симв. и не длиннее 30',
-    },
+    default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
+    default: 'Исследователь',
     minlength: 2,
     maxlength: 200,
-    validate: {
-      validator: (v: string) => v.length > 2 && v.length < 200,
-      message: 'Текст должен быть не короче 2 симв. и не длиннее 200',
-    },
   },
   avatar: {
     type: String,
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator: (v: string) => regExp.test(v),
+      validator: (v: string) => REGEX_URL.test(v),
       message: 'Некорректная ссылка',
     },
   },
@@ -61,7 +56,7 @@ const UserSchema = new Schema<IUser>({
   },
 });
 
-UserSchema.static('findUserByCredentials', async function findUserByCredentials(email, password) {
+userSchema.static('findUserByCredentials', async function findUserByCredentials(email, password) {
   const user = await this.findOne({ email }).select('+password');
   if (!user) {
     return ApiError.authorization('Неправильные почта или пароль');
@@ -73,4 +68,4 @@ UserSchema.static('findUserByCredentials', async function findUserByCredentials(
   return user;
 });
 
-export default model<IUser, UserModel>('User', UserSchema);
+export default model<IUser, UserModel>('user', userSchema);

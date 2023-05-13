@@ -1,10 +1,10 @@
 import { Joi, celebrate } from 'celebrate';
-import { regExp } from '../constants';
+import { REGEX_URL } from '../constants';
 
 export const createUserValidation = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
-    avatar: Joi.string().pattern(regExp),
+    avatar: Joi.string().pattern(REGEX_URL),
     about: Joi.string().min(2).max(200),
     email: Joi.string().required().email(),
     password: Joi.string().required(),
@@ -33,6 +33,6 @@ export const updateInfoValidation = celebrate({
 
 export const updateAvatarValidation = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().pattern(regExp).required(),
+    avatar: Joi.string().pattern(REGEX_URL).required(),
   }),
 });

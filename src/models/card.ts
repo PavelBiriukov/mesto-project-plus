@@ -1,5 +1,5 @@
 import { model, Schema, Types } from 'mongoose';
-import { regExp } from '../constants/index';
+import { REGEX_URL } from '../constants/index';
 
 interface ICard {
   name: string;
@@ -24,7 +24,7 @@ const CardSchema = new Schema<ICard>({
     type: String,
     required: true,
     validate: {
-      validator: (v: string) => regExp.test(v),
+      validator: (v: string) => REGEX_URL.test(v),
       message: 'Некорректная ссылка',
     },
   },
@@ -34,9 +34,9 @@ const CardSchema = new Schema<ICard>({
     required: true,
   },
   likes: {
+    ref: 'user',
     type: [Types.ObjectId],
     default: [],
-    required: true,
   },
   createdAt: {
     type: Date,

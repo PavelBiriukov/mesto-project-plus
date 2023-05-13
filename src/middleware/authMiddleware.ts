@@ -12,7 +12,8 @@ export default (req: IAuthRequest, _res: Response, next: NextFunction) => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    return ApiError.authorization('Необходима авторизация');
+    next( ApiError.authorization('Необходима авторизация'))
+    return;
   }
 
   const token = extractBearerToken(authorization);
@@ -21,7 +22,8 @@ export default (req: IAuthRequest, _res: Response, next: NextFunction) => {
   try {
     payload = jwt.verify(token, process.env.SECRET_KEY as string || 'G0OSxv4FFzqX1O1KbkFaWmVVTW4kbWyI');
   } catch (err) {
-    return ApiError.authorization('Необходима авторизация');
+    next( ApiError.authorization('Необходима авторизация'))
+    return;
   }
 
   req.user = payload as { _id: JwtPayload };
