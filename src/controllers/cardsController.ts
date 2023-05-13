@@ -12,8 +12,8 @@ class CardController {
     try {
       const user = await Card.create({ name, link, owner });
       return res.json({ data: user });
-    } catch(err: any) {
-      errorHandler(err, req, res)
+    } catch(err) {
+       next(errorHandler(err, req, res))
     }
   }
 
@@ -21,8 +21,9 @@ class CardController {
     try {
       const cards = await Card.find({});
       return res.json({ data: cards });
-    } catch(err: any) {
-      errorHandler(err, req, res)
+    } catch(err) {
+            next(errorHandler(err, req, res))
+
     }
   }
 
@@ -32,19 +33,21 @@ class CardController {
     return Card.findById(_id)
       .then((card) => {
         if (!card) {
-          return next(ApiError.authorization('Карточка с указанным _id не найдена'));
+          return next(ApiError.notFound('Карточка с указанным _id не найдена'));
         }
         if (card.owner.toString() === userId) {
           return card.deleteOne()
             .then(() => res.send({ message: 'Карточка успешно удалена' }))
-            .catch((err: any) => {
-              errorHandler(err, req, res)
+            .catch((err) => {
+                    next(errorHandler(err, req, res))
+
             });
           }
-        return next(ApiError.authorization('Недостаточно прав для удаления карточки'));
+        return next(ApiError.notFound('Недостаточно прав для удаления карточки'));
       })
-      .catch((err: any) => {
-        errorHandler(err, req, res)
+      .catch((err) => {
+              next(errorHandler(err, req, res))
+
       });
   };
 
@@ -53,9 +56,6 @@ class CardController {
     const id = req.user!._id;
 
     try {
-      if (!cardId) {
-        return next(ApiError.badRequest('Переданы некорректные данные для постановки лайка'));
-      }
       const card = await Card.findByIdAndUpdate(
         cardId,
         {
@@ -67,12 +67,10 @@ class CardController {
           new: true,
         },
       );
-      if (!card) {
-        return next(ApiError.notFound('Передан несуществующий _id карточки'));
-      }
       return res.json({ data: card });
-    } catch(err: any) {
-      errorHandler(err, req, res)
+    } catch(err) {
+            next(errorHandler(err, req, res))
+
     }
   }
 
@@ -81,9 +79,6 @@ class CardController {
     const id = req.user!._id;
 
     try {
-      if (!cardId) {
-        return next(ApiError.badRequest('Переданы некорректные данные для постановки лайка'));
-      }
       const card = await Card.findByIdAndUpdate(
         cardId,
         {
@@ -99,8 +94,9 @@ class CardController {
         return next(ApiError.notFound('Передан несуществующий _id карточки'));
       }
       return res.json({ data: card });
-    } catch(err: any) {
-      errorHandler(err, req, res)
+    } catch(err) {
+            next(errorHandler(err, req, res))
+
     }
   }
 }
