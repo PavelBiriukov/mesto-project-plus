@@ -3,6 +3,7 @@ import {
 } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
+import { emailValidator } from 'middleware/ErrorHandlingMiddleware';
 import { REGEX_URL } from '../constants/index';
 import ApiError from '../error/ApiError';
 
@@ -44,10 +45,7 @@ const userSchema = new Schema<IUser>({
     type: String,
     unique: true,
     required: [true, 'User email equired'],
-    validate: {
-      validator: (v: string) => validator.isEmail(v),
-      message: 'Неправильный формат почты',
-    },
+    validate: emailValidator,
   },
   password: {
     type: String,

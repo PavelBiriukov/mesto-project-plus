@@ -9,7 +9,8 @@ class ApiError extends Error {
   static badRequest(message: string) {
     return new ApiError(400, message);
   }
-  static ConflictError (message: string) {
+
+  static ConflictError(message: string) {
     return new ApiError(11000, message);
   }
 
