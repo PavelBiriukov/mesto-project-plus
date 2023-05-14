@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+import { handleOperationalErrors } from 'middleware/ErrorHandlingMiddleware';
 import ApiError from '../error/ApiError';
 import Card from '../models/card';
 import { IAppRequest } from '../types/AppRequest';
-import errorHandler from 'middleware/ErrorHandlingMiddleware';
 
 class CardController {
   async createCard(req: IAppRequest, res: Response, next: NextFunction) {
@@ -12,8 +12,8 @@ class CardController {
     try {
       const user = await Card.create({ name, link, owner });
       return res.json({ data: user });
-    } catch(err) {
-       next(errorHandler(err, req, res))
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 
@@ -21,13 +21,12 @@ class CardController {
     try {
       const cards = await Card.find({});
       return res.json({ data: cards });
-    } catch(err) {
-            next(errorHandler(err, req, res))
-
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 
-  async deleteCard (req: IAppRequest, res: Response, next: NextFunction) {
+  async deleteCard(req: IAppRequest, res: Response, next: NextFunction) {
     const _id = req.params.cardId;
     const userId = req.user?._id;
     return Card.findById(_id)
@@ -39,17 +38,15 @@ class CardController {
           return card.deleteOne()
             .then(() => res.send({ message: 'Карточка успешно удалена' }))
             .catch((err) => {
-                    next(errorHandler(err, req, res))
-
+              handleOperationalErrors(err, next);
             });
-          }
+        }
         return next(ApiError.notFound('Недостаточно прав для удаления карточки'));
       })
       .catch((err) => {
-              next(errorHandler(err, req, res))
-
+        handleOperationalErrors(err, next);
       });
-  };
+  }
 
   async likeCard(req: IAppRequest, res: Response, next: NextFunction) {
     const { cardId } = req.params;
@@ -68,9 +65,8 @@ class CardController {
         },
       );
       return res.json({ data: card });
-    } catch(err) {
-            next(errorHandler(err, req, res))
-
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 
@@ -94,9 +90,8 @@ class CardController {
         return next(ApiError.notFound('Передан несуществующий _id карточки'));
       }
       return res.json({ data: card });
-    } catch(err) {
-            next(errorHandler(err, req, res))
-
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 }

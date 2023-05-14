@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { handleOperationalErrors } from 'middleware/ErrorHandlingMiddleware';
 import User from '../models/user';
 import ApiError from '../error/ApiError';
 import { IAppRequest } from '../types/AppRequest';
-import errorHandler from 'middleware/ErrorHandlingMiddleware';
 
 class UserController {
-  async createUser (req: Request, res: Response, next: NextFunction) {
+  async createUser(req: Request, res: Response, next: NextFunction) {
     const {
       name, about, avatar, email,
     } = req.body;
@@ -29,17 +29,16 @@ class UserController {
         });
       })
       .catch((err) => {
-        next(errorHandler(err, req, res))
+        handleOperationalErrors(err, next);
       });
-  };
+  }
 
   async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const users = await User.find({});
       return res.json({ data: users });
-    } catch(err) {
-      next(errorHandler(err, req, res))
-
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 
@@ -49,9 +48,8 @@ class UserController {
       const users = await User.findById(id);
 
       return res.json({ data: users });
-    } catch(err) {
-            next(errorHandler(err, req, res))
-
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 
@@ -60,9 +58,8 @@ class UserController {
     try {
       const user = await User.findById(userId);
       res.send({ data: user });
-    } catch(err) {
-            next(errorHandler(err, req, res))
-
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 
@@ -73,9 +70,8 @@ class UserController {
       return res.send({
         token: jwt.sign({ _id: user._id }, process.env.SECRET_KEY as string || 'G0OSxv4FFzqX1O1KbkFaWmVVTW4kbWyI', { expiresIn: '7d' }),
       });
-    } catch(err) {
-            next(errorHandler(err, req, res))
-
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 
@@ -94,8 +90,8 @@ class UserController {
         },
       );
       return res.json({ data: users });
-    } catch(err) {
-      next(errorHandler(err, req, res))
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 
@@ -113,9 +109,8 @@ class UserController {
         },
       );
       return res.json({ data: users });
-    } catch(err) {
-            next(errorHandler(err, req, res))
-
+    } catch (err) {
+      handleOperationalErrors(err, next);
     }
   }
 }

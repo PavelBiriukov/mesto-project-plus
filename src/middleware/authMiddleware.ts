@@ -12,7 +12,7 @@ export default (req: IAuthRequest, _res: Response, next: NextFunction) => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    next( ApiError.authorization('Необходима авторизация'))
+    next(ApiError.authorization('Необходима авторизация'));
     return;
   }
 
@@ -22,7 +22,7 @@ export default (req: IAuthRequest, _res: Response, next: NextFunction) => {
   try {
     payload = jwt.verify(token, process.env.SECRET_KEY as string || 'G0OSxv4FFzqX1O1KbkFaWmVVTW4kbWyI');
   } catch (err) {
-    next( ApiError.authorization('Необходима авторизация'))
+    next(ApiError.authorization('Необходима авторизация'));
     return;
   }
 
