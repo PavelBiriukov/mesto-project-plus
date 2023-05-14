@@ -32,7 +32,7 @@ class CardController {
     return Card.findById(_id)
       .then((card) => {
         if (!card) {
-          return next(ApiError.notFound('Карточка с указанным _id не найдена'));
+          return next(ApiError.badRequest('Карточка с указанным _id не найдена'));
         }
         if (card.owner.toString() === userId) {
           return card.deleteOne()
@@ -64,6 +64,9 @@ class CardController {
           new: true,
         },
       );
+      if (!card) {
+        return next(ApiError.notFound('Передан несуществующий _id карточки'));
+      }
       return res.json({ data: card });
     } catch (err) {
       handleOperationalErrors(err, next);
